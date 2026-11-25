@@ -11,6 +11,18 @@ export * from "./types.js";
  * The key must be 1–255 bytes. Reuse it with the unchanged request when retrying.
  */
 
+/**
+ * @typedef {(Pick<import('./types.js').SmsMessage, 'channel_type' | 'to' | 'text'> | Pick<import('./types.js').WhatsAppTextMessage, 'channel_type' | 'to' | 'text' | 'channel_id' | 'buttons'>) & { idempotencyKey: string }} SendTextInput
+ */
+
+/**
+ * @typedef {Pick<import('./types.js').WhatsAppImageMessage, 'to' | 'channel_id' | 'image' | 'buttons'> & { idempotencyKey: string }} SendImageInput
+ */
+
+/**
+ * @typedef {Pick<import('./types.js').WhatsAppListMessage, 'to' | 'channel_id' | 'text' | 'list'> & { idempotencyKey: string }} SendListInput
+ */
+
 /** An unsuccessful HTTP response from Ziph. Network errors are not wrapped. */
 export class ZiphError extends Error {
 	/**
@@ -49,6 +61,33 @@ export class ZiphClient {
 		if (!["http:", "https:"].includes(this.#messageUrl.protocol)) {
 			throw new TypeError("baseUrl must use HTTP or HTTPS.");
 		}
+	}
+
+	/**
+	 * Sends a WhatsApp or SMS text message. text is required.
+	 * @param {SendTextInput} input
+	 * @returns {Promise<import('./types.js').MessageEnvelope>}
+	 */
+	sendText(input) {
+		return this.sendMessage(input);
+	}
+
+	/**
+	 * Sends a WhatsApp image. Use image.caption for accompanying text.
+	 * @param {SendImageInput} input
+	 * @returns {Promise<import('./types.js').MessageEnvelope>}
+	 */
+	sendImage(input) {
+		return this.sendMessage({ ...input, channel_type: "whatsapp" });
+	}
+
+	/**
+	 * Sends a WhatsApp list menu. Both text and list are required.
+	 * @param {SendListInput} input
+	 * @returns {Promise<import('./types.js').MessageEnvelope>}
+	 */
+	sendList(input) {
+		return this.sendMessage({ ...input, channel_type: "whatsapp" });
 	}
 
 	/**
