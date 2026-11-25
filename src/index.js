@@ -1,16 +1,33 @@
+export * from "./types.js";
+
+/**
+ * @typedef {object} ZiphOptions
+ * @property {string} apiKey Server-side API key. Never expose it in browser code.
+ * @property {string} [baseUrl] API root without /v1. Defaults to https://api.ziph.dev.
+ */
+
+/**
+ * @typedef {import('./types.js').SendMessageRequest & { idempotencyKey: string }} SendMessageInput
+ * The key must be 1–255 bytes. Reuse it with the unchanged request when retrying.
+ */
+
 /** An unsuccessful HTTP response from Ziph. Network errors are not wrapped. */
 export class ZiphError extends Error {
 	/**
 	 * @param {number} status
-	 * @param {import('./index.d.ts').ApiError | null} [error]
-	 * @param {import('./index.d.ts').Meta | null} [meta]
+	 * @param {import('./types.js').ApiError | null} [error]
+	 * @param {import('./types.js').Meta | null} [meta]
 	 */
 	constructor(status, error = null, meta = null) {
 		super(error?.message ?? `Ziph request failed with HTTP ${status}.`);
 		this.name = "ZiphError";
+		/** @readonly */
 		this.status = status;
+		/** @readonly */
 		this.code = error?.code ?? null;
+		/** @readonly */
 		this.details = error?.details ?? [];
+		/** @readonly */
 		this.meta = meta;
 	}
 }
@@ -20,7 +37,7 @@ export class ZiphClient {
 	#apiKey;
 	#messageUrl;
 
-	/** @param {import('./index.d.ts').ZiphOptions} options */
+	/** @param {ZiphOptions} options */
 	constructor({ apiKey, baseUrl = "https://api.ziph.dev" }) {
 		if (typeof apiKey !== "string" || !apiKey.trim()) {
 			throw new TypeError("apiKey is required.");
@@ -37,8 +54,9 @@ export class ZiphClient {
 	/**
 	 * Sends once, without automatic retries. Reuse the same key and unchanged
 	 * request if retrying after a network error or an uncertain outcome.
-	 * @param {import('./index.d.ts').SendMessageInput} input
-	 * @returns {Promise<import('./index.d.ts').MessageEnvelope>}
+	 * Acceptance does not confirm delivery. idempotencyKey is sent only as a header.
+	 * @param {SendMessageInput} input
+	 * @returns {Promise<import('./types.js').MessageEnvelope>}
 	 */
 	async sendMessage({ idempotencyKey, ...request }) {
 		if (
@@ -62,9 +80,13 @@ export class ZiphClient {
 
 		if (!response.ok) {
 			// Proxies may return HTML or empty bodies instead of an API envelope.
-			const body = await response.json().catch(() => null);
+			const body = /** @type {import('./types.js').ErrorEnvelope | null} */ (
+				await response.json().catch(() => null)
+			);
 			throw new ZiphError(response.status, body?.error, body?.meta);
 		}
-		return response.json();
+		return /** @type {Promise<import('./types.js').MessageEnvelope>} */ (
+			response.json()
+		);
 	}
 }

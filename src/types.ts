@@ -256,38 +256,3 @@ export interface ErrorEnvelope {
 	error: ApiError;
 	meta: Meta;
 }
-
-export interface ZiphOptions {
-	/** Server-side API key. Do not expose it in browser code. */
-	apiKey: string;
-	/** API root, without /v1. Defaults to https://api.ziph.dev. */
-	baseUrl?: string;
-}
-
-export type SendMessageInput = SendMessageRequest & {
-	/** 1–255 bytes. Reuse with the unchanged request when retrying a send. */
-	idempotencyKey: string;
-};
-
-/** An unsuccessful HTTP response. Network errors are not wrapped. */
-export class ZiphError extends Error {
-	constructor(status: number, error?: ApiError | null, meta?: Meta | null);
-	readonly status: number;
-	/** Null when the response is not a Ziph API error envelope. */
-	readonly code: ErrorCode | null;
-	readonly details: FieldError[];
-	readonly meta: Meta | null;
-}
-
-/** Server-side client for sending WhatsApp and SMS messages. */
-export class ZiphClient {
-	constructor(options: ZiphOptions);
-	/**
-	 * Sends once without automatic retries. Returns the full envelope for
-	 * new sends (201), completed replays (200), and processing replays (202).
-	 * Acceptance does not confirm delivery. Retry uncertain outcomes only
-	 * with the original idempotency key and unchanged request.
-	 * idempotencyKey is sent as a header, not in the JSON body.
-	 */
-	sendMessage(input: SendMessageInput): Promise<MessageEnvelope>;
-}
