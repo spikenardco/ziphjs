@@ -1,0 +1,53 @@
+{
+	"name": "ziphjs",
+	"version": "0.0.1",
+	"description": "",
+	"type": "module",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		}
+	},
+	"sideEffects": false,
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"format": "biome check --write .",
+		"format:check": "biome check .",
+		"test": "node --test",
+		"typecheck": "tsc --noEmit",
+		"build": "rm -rf dist && esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.js --target=node20 --minify && tsc --emitDeclarationOnly --rootDir src && cp src/index.d.ts dist/index.d.ts",
+		"prepublishOnly": "npm run build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/spikenardco/ziphjs.git"
+	},
+	"keywords": [
+		"ziph"
+	],
+	"license": "Apache-2.0",
+	"contributors": [
+		{
+			"name": "Ben",
+			"email": "bnjox@users.noreply.github.com",
+			"url": "https://github.com/bnjox"
+		}
+	],
+	"bugs": {
+		"url": "https://github.com/spikenardco/ziphjs/issues"
+	},
+	"homepage": "https://github.com/spikenardco/ziphjs#readme",
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.12",
+		"@types/node": "^26.4.1",
+		"esbuild": "^0.28.2",
+		"typescript": "^7.0.2"
+	}
+}
