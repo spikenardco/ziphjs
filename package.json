@@ -1,7 +1,7 @@
 {
 	"name": "ziphjs",
 	"version": "0.0.1",
-	"description": "",
+	"description": "Lightweight server-side JavaScript and TypeScript client for sending WhatsApp and SMS messages with Ziph.",
 	"type": "module",
 	"engines": {
 		"node": ">=20.0.0"
@@ -30,7 +30,13 @@
 		"url": "git+https://github.com/spikenardco/ziphjs.git"
 	},
 	"keywords": [
-		"ziph"
+		"ziph",
+		"whatsapp",
+		"sms",
+		"messaging",
+		"sdk",
+		"nodejs",
+		"typescript"
 	],
 	"license": "Apache-2.0",
 	"contributors": [
