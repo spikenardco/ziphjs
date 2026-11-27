@@ -79,17 +79,40 @@ deduplicate event IDs before performing business actions.
 
 ## Errors
 
-Failed HTTP responses throw `ZiphError`, which includes `status`, `code`, `details`,
-and `meta`. Network errors pass through unchanged. Invalid client options or
+Failed HTTP responses with a valid API error envelope throw `ZiphError`, which
+includes `status`, `code`, `message`, and `meta`. Use `code` for programmatic
+decisions; `message` is a safe explanation for display, not a value to parse.
+Malformed or non-JSON error responses throw a plain `Error` identifying an invalid
+API response. Network errors pass through unchanged. Invalid client options or
 idempotency keys throw `TypeError`.
 
-The constructor rejects missing, non-string, or whitespace-only API keys with
-`TypeError: apiKey must be a non-empty string.`
+`ZiphError.details`, `ApiError.details`, and the exported `FieldError` type have
+been removed. When constructing `ZiphError` directly, supply the required API
+error with `code` and `message`; the constructor no longer invents defaults.
+
+The `ZiphClient` constructor rejects missing, non-string, or whitespace-only API
+keys with `TypeError: apiKey must be a non-empty string.`
 
 WhatsApp sends can fail with `NUMBER_LIMIT_EXCEEDED` (HTTP 409) when your
 workspace has more channels than its plan allows. This differs from
 `MESSAGE_QUOTA_EXCEEDED` (HTTP 429), which means the remaining WhatsApp message
 or SMS segment allowance is insufficient.
+
+Send failures distinguish rejection, unavailability, and uncertain outcomes:
+
+- HTTP 422 `PROVIDER_REJECTED`: the provider rejected the request before accepting
+  the message.
+- HTTP 503 `PROVIDER_UNAVAILABLE`, `SERVICE_UNAVAILABLE`, or
+  `CHANNEL_TYPE_UNAVAILABLE`: the provider, service, or channel type is unavailable.
+- HTTP 504 `PROVIDER_TIMEOUT`: a provider operation timed out outside an uncertain
+  send.
+- HTTP 502 `SEND_OUTCOME_UNKNOWN`: acceptance could not be confirmed. If you retry,
+  use only the same idempotency key and unchanged request, never a new key. A
+  timeout or lost response does not prove that the message was rejected.
+
+The client does not retry automatically. After a network or protocol error during
+a send, acceptance may also be uncertain; the same-key, unchanged-request retry
+rule applies.
 
 ## Removed read-response types
 
