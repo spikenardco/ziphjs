@@ -155,6 +155,34 @@ export type SendMessageRequest =
 	| WhatsAppImageMessage
 	| WhatsAppListMessage;
 
+export type ZiphOptions = {
+	/** Server-side API key. Never expose it in browser code. */
+	apiKey: string;
+	/** API root without /v1. Defaults to https://api.ziph.dev. */
+	baseUrl?: string;
+};
+
+/** The key must be 1–255 bytes. Reuse it with the unchanged request when retrying. */
+export type SendMessageInput = SendMessageRequest & { idempotencyKey: string };
+
+export type SendTextInput = (
+	| Pick<SmsMessage, "channel_type" | "to" | "text">
+	| Pick<
+			WhatsAppTextMessage,
+			"channel_type" | "to" | "text" | "channel_id" | "buttons"
+	  >
+) & { idempotencyKey: string };
+
+export type SendImageInput = Pick<
+	WhatsAppImageMessage,
+	"to" | "channel_id" | "image" | "buttons"
+> & { idempotencyKey: string };
+
+export type SendListInput = Pick<
+	WhatsAppListMessage,
+	"to" | "channel_id" | "text" | "list"
+> & { idempotencyKey: string };
+
 /** Selection returned when a recipient answers a quick-reply or list message. */
 export interface InteractiveReply {
 	id: string;

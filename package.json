@@ -22,7 +22,7 @@
 		"format:check": "biome check .",
 		"test": "node --test",
 		"typecheck": "tsc --noEmit",
-		"build": "rm -rf dist && esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.js --target=node20 --minify && tsc --emitDeclarationOnly --rootDir src",
+		"build": "rm -rf dist && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --target=node20 --minify && tsc --emitDeclarationOnly --rootDir src",
 		"prepublishOnly": "npm run build"
 	},
 	"repository": {
