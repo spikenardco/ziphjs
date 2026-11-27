@@ -1,6 +1,6 @@
 {
 	"name": "ziphjs",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Lightweight server-side JavaScript and TypeScript client for sending WhatsApp and SMS messages with Ziph.",
 	"type": "module",
 	"engines": {
