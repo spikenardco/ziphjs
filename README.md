@@ -105,10 +105,9 @@ The runtime is plain ESM JavaScript in `src/index.js`. TypeScript declarations
 live in `types/index.d.ts` and `types/models.d.ts`; consumers can import types
 directly from `ziphjs`. There is no compilation or bundling step.
 
-Run `npm ci`, `npm run format:check`, `npm run typecheck`, and `npm test` before
-releasing. Typechecking checks the JavaScript through JSDoc and exercises public
-type imports under both NodeNext and bundler resolution. Runtime tests use
-mocked requests and do not contact Ziph.
+Run `npm ci`, `npm run format:check`, and `npm run typecheck` before releasing.
+Typechecking checks the JavaScript through JSDoc and the public declarations
+under both NodeNext and bundler resolution.
 
 Use `npm pack --dry-run` to inspect the package contents without publishing.
 The package ships `src` and `types` directly. Keep public declarations and

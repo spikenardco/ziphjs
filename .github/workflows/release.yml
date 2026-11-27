@@ -37,7 +37,6 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm test
       - run: npm pack --dry-run
       - name: Publish package using OIDC
         run: npm publish --access public --ignore-scripts

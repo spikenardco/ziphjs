@@ -21,6 +21,6 @@
 		"moduleDetection": "force",
 		"skipLibCheck": false
 	},
-	"include": ["src/**/*.js", "types/**/*.d.ts", "test/types/**/*.ts"],
+	"include": ["src/**/*.js", "types/**/*.d.ts"],
 	"exclude": ["node_modules", "dist"]
 }

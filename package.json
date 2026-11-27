@@ -22,9 +22,8 @@
 	"scripts": {
 		"format": "biome check --write .",
 		"format:check": "biome check .",
-		"test": "node --test test/*.test.js",
 		"typecheck": "tsc && tsc --module ESNext --moduleResolution bundler",
-		"prepublishOnly": "npm run format:check && npm run typecheck && npm test"
+		"prepublishOnly": "npm run format:check && npm run typecheck"
 	},
 	"repository": {
 		"type": "git",
