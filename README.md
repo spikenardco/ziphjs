@@ -3,6 +3,9 @@
 Lightweight JavaScript and TypeScript client for sending WhatsApp and
 SMS messages with [Ziph](https://ziph.dev). No runtime dependencies.
 
+The client covers sending messages; it does not list messages or look up message
+details. Incoming webhook types support handling replies to your messages.
+
 ## Installation
 
 ```sh
@@ -83,6 +86,14 @@ WhatsApp sends can fail with `NUMBER_LIMIT_EXCEEDED` (HTTP 409) when your
 workspace has more channels than its plan allows. This differs from
 `MESSAGE_QUOTA_EXCEEDED` (HTTP 429), which means the remaining WhatsApp message
 or SMS segment allowance is insufficient.
+
+## Removed read-response types
+
+`MessageDetail`, `MessageDetailEnvelope`, `MessageList`, `MessageListEnvelope`,
+`MessageStatusEvent`, and `Message.events` have been removed. They described
+lookup/list responses, not send responses. Consumers importing these types must
+remove those imports. Send methods still return `MessageEnvelope`, whose `data`
+is a `Message`; WhatsApp list-menu types and `sendList` are unchanged.
 
 ## Development and releases
 

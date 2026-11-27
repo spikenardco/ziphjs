@@ -215,13 +215,6 @@ export interface MessageReceivedEvent {
 	message: ReceivedMessage;
 }
 
-export interface MessageStatusEvent {
-	id: string;
-	status: MessageStatus;
-	failure_code: string | null;
-	occurred_at: string;
-}
-
 export interface Message {
 	id: string;
 	channel_id: string | null;
@@ -232,17 +225,6 @@ export interface Message {
 	failure_code: string | null;
 	created_at: string;
 	updated_at: string;
-	events?: MessageStatusEvent[];
-}
-
-export interface MessageDetail extends Message {
-	events: MessageStatusEvent[];
-}
-
-export interface MessageList {
-	messages: Message[];
-	/** Pass as `before` when listing; null on the last page. */
-	next_cursor: string | null;
 }
 
 export interface Meta {
@@ -256,8 +238,6 @@ export interface ResponseEnvelope<T> {
 }
 
 export type MessageEnvelope = ResponseEnvelope<Message>;
-export type MessageDetailEnvelope = ResponseEnvelope<MessageDetail>;
-export type MessageListEnvelope = ResponseEnvelope<MessageList>;
 
 export type ErrorCode =
 	| "AUTH_REQUIRED"
