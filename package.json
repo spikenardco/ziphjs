@@ -6,24 +6,25 @@
 	"engines": {
 		"node": ">=20.0.0"
 	},
+	"types": "./types/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"types": "./types/index.d.ts",
+			"import": "./src/index.js",
+			"default": "./src/index.js"
 		}
 	},
 	"sideEffects": false,
 	"files": [
-		"dist"
+		"src",
+		"types"
 	],
 	"scripts": {
 		"format": "biome check --write .",
 		"format:check": "biome check .",
-		"test": "node --test",
-		"typecheck": "tsc --noEmit",
-		"build": "rm -rf dist && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --target=node20 --minify && tsc --emitDeclarationOnly --rootDir src",
-		"prepublishOnly": "npm run build"
+		"test": "node --test test/*.test.js",
+		"typecheck": "tsc && tsc --module ESNext --moduleResolution bundler",
+		"prepublishOnly": "npm run format:check && npm run typecheck && npm test"
 	},
 	"repository": {
 		"type": "git",
@@ -53,7 +54,6 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.12",
 		"@types/node": "^26.4.1",
-		"esbuild": "^0.28.2",
 		"typescript": "^7.0.2"
 	}
 }

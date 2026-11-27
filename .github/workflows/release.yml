@@ -38,7 +38,7 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build
+      - run: npm pack --dry-run
       - name: Publish package using OIDC
         run: npm publish --access public --ignore-scripts
       - name: Create GitHub Release

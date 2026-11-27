@@ -1,8 +1,6 @@
-import type {
+/** @import {
 	ApiError,
-	ErrorCode,
 	ErrorEnvelope,
-	FieldError,
 	MessageEnvelope,
 	Meta,
 	SendImageInput,
@@ -10,22 +8,16 @@ import type {
 	SendMessageInput,
 	SendTextInput,
 	ZiphOptions,
-} from "./types.js";
-
-export type * from "./types.js";
+} from "../types/models.js" */
 
 /** An unsuccessful HTTP response from Ziph. Network errors are not wrapped. */
 export class ZiphError extends Error {
-	declare status: number;
-	declare code: ErrorCode | null;
-	declare details: FieldError[];
-	declare meta: Meta | null;
-
-	constructor(
-		status: number,
-		error: ApiError | null = null,
-		meta: Meta | null = null,
-	) {
+	/**
+	 * @param {number} status
+	 * @param {ApiError | null} [error]
+	 * @param {Meta | null} [meta]
+	 */
+	constructor(status, error = null, meta = null) {
 		super(error?.message ?? `Ziph request failed with HTTP ${status}.`);
 		this.name = "ZiphError";
 		this.status = status;
@@ -37,10 +29,17 @@ export class ZiphError extends Error {
 
 /** Server-side client for sending WhatsApp and SMS messages. */
 export class ZiphClient {
-	#apiKey: string;
-	#messageUrl: URL;
+	/** @type {string} */
+	#apiKey;
+	/** @type {URL} */
+	#messageUrl;
 
-	constructor({ apiKey, baseUrl = "https://api.ziph.dev" }: ZiphOptions) {
+	/** @param {ZiphOptions} options */
+	constructor({ apiKey, baseUrl = "https://api.ziph.dev" }) {
+		if (typeof apiKey !== "string" || !apiKey.trim()) {
+			throw new TypeError("apiKey must be a non-empty string.");
+		}
+
 		this.#apiKey = apiKey;
 		this.#messageUrl = new URL(`${baseUrl.replace(/\/+$/, "")}/v1/messages`);
 
@@ -49,18 +48,30 @@ export class ZiphClient {
 		}
 	}
 
-	/** Sends a WhatsApp or SMS text message. text is required. */
-	sendText(input: SendTextInput): Promise<MessageEnvelope> {
+	/**
+	 * Sends a WhatsApp or SMS text message. text is required.
+	 * @param {SendTextInput} input
+	 * @returns {Promise<MessageEnvelope>}
+	 */
+	sendText(input) {
 		return this.sendMessage(input);
 	}
 
-	/** Sends a WhatsApp image. Use image.caption for accompanying text. */
-	sendImage(input: SendImageInput): Promise<MessageEnvelope> {
+	/**
+	 * Sends a WhatsApp image. Use image.caption for accompanying text.
+	 * @param {SendImageInput} input
+	 * @returns {Promise<MessageEnvelope>}
+	 */
+	sendImage(input) {
 		return this.sendMessage({ ...input, channel_type: "whatsapp" });
 	}
 
-	/** Sends a WhatsApp list menu. Both text and list are required. */
-	sendList(input: SendListInput): Promise<MessageEnvelope> {
+	/**
+	 * Sends a WhatsApp list menu. Both text and list are required.
+	 * @param {SendListInput} input
+	 * @returns {Promise<MessageEnvelope>}
+	 */
+	sendList(input) {
 		return this.sendMessage({ ...input, channel_type: "whatsapp" });
 	}
 
@@ -68,11 +79,10 @@ export class ZiphClient {
 	 * Sends once, without automatic retries. Reuse the same key and unchanged
 	 * request if retrying after a network error or an uncertain outcome.
 	 * Acceptance does not confirm delivery. idempotencyKey is sent only as a header.
+	 * @param {SendMessageInput} input
+	 * @returns {Promise<MessageEnvelope>}
 	 */
-	async sendMessage({
-		idempotencyKey,
-		...request
-	}: SendMessageInput): Promise<MessageEnvelope> {
+	async sendMessage({ idempotencyKey, ...request }) {
 		if (
 			typeof idempotencyKey !== "string" ||
 			!idempotencyKey.trim() ||
@@ -94,12 +104,12 @@ export class ZiphClient {
 
 		if (!response.ok) {
 			// Proxies may return HTML or empty bodies instead of an API envelope.
-			const body = (await response
-				.json()
-				.catch(() => null)) as ErrorEnvelope | null;
+			const body = /** @type {ErrorEnvelope | null} */ (
+				await response.json().catch(() => null)
+			);
 			throw new ZiphError(response.status, body?.error, body?.meta);
 		}
 
-		return response.json() as Promise<MessageEnvelope>;
+		return /** @type {Promise<MessageEnvelope>} */ (response.json());
 	}
 }

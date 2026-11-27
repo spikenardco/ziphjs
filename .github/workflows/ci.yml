@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   check:
-    name: Check & Build
+    name: Check & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
@@ -27,4 +27,4 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
-      - run: npm run build
+      - run: npm pack --dry-run

@@ -82,6 +82,9 @@ Failed HTTP responses throw `ZiphError`, which includes `status`, `code`, `detai
 and `meta`. Network errors pass through unchanged. Invalid client options or
 idempotency keys throw `TypeError`.
 
+The constructor rejects missing, non-string, or whitespace-only API keys with
+`TypeError: apiKey must be a non-empty string.`
+
 WhatsApp sends can fail with `NUMBER_LIMIT_EXCEEDED` (HTTP 409) when your
 workspace has more channels than its plan allows. This differs from
 `MESSAGE_QUOTA_EXCEEDED` (HTTP 429), which means the remaining WhatsApp message
@@ -97,9 +100,18 @@ is a `Message`; WhatsApp list-menu types and `sendList` are unchanged.
 
 ## Development and releases
 
-Run `npm ci`, `npm run format:check`, `npm run typecheck`, `npm test`, and
-`npm run build` before releasing. The test command currently discovers no tests.
+The runtime is plain ESM JavaScript in `src/index.js`. TypeScript declarations
+live in `types/index.d.ts` and `types/models.d.ts`; consumers can import types
+directly from `ziphjs`. There is no compilation or bundling step.
+
+Run `npm ci`, `npm run format:check`, `npm run typecheck`, and `npm test` before
+releasing. Typechecking checks the JavaScript through JSDoc and exercises public
+type imports under both NodeNext and bundler resolution. Runtime tests use
+mocked requests and do not contact Ziph.
+
 Use `npm pack --dry-run` to inspect the package contents without publishing.
+The package ships `src` and `types` directly. Keep public declarations and
+implementation annotations in sync when changing the API.
 
 ## License
 
