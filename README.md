@@ -42,9 +42,10 @@ Use `sendMessage` for any supported message type, or the `sendText`, `sendImage`
 and `sendList` helpers when you want a type-specific method. Request and response
 types are exported from `ziphjs`.
 
-Every send needs an `idempotencyKey` of 1 to 255 bytes. Use a new key for each
-message. If you're unsure whether a request succeeded, retry with the same key
-and unchanged request. The client does not retry automatically.
+Every send needs a nonblank string `idempotencyKey`. The client does not impose
+a key-length limit. Use a new key for each message. If you're unsure whether a
+request succeeded, retry with the same key and unchanged request. The client
+does not retry automatically.
 
 ## Typing incoming webhook payloads
 

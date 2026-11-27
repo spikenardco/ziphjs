@@ -104,34 +104,29 @@ test("send methods preserve the request, headers, URL and response", async (t) =
 	assert.equal(requests.length, 4);
 });
 
-test("idempotency keys enforce UTF-8 byte boundaries before sending", async (t) => {
+test("idempotency keys require nonblank strings without a byte limit", async (t) => {
 	const client = new ZiphClient({ apiKey: "test-key" });
-	const fetch = t.mock.method(globalThis, "fetch", async (url) => {
+	const sentKeys = [];
+	const fetch = t.mock.method(globalThis, "fetch", async (url, options) => {
 		assert.equal(String(url), "https://api.ziph.dev/v1/messages");
+		sentKeys.push(options.headers["Idempotency-Key"]);
 		return Response.json(envelope);
 	});
-	for (const key of ["a", `${"é".repeat(127)}a`]) {
+	const keys = ["a", "a".repeat(256), "é".repeat(128)];
+	for (const key of keys) {
 		await client.sendMessage({ ...input, idempotencyKey: key });
 	}
-	assert.equal(fetch.mock.callCount(), 2);
-	for (const key of [
-		undefined,
-		null,
-		123,
-		"",
-		"  ",
-		"a".repeat(256),
-		"é".repeat(128),
-	]) {
+	assert.deepEqual(sentKeys, keys);
+	for (const key of [undefined, null, 123, false, {}, [], "", " \t\r\n"]) {
 		await assert.rejects(
 			client.sendMessage({ ...input, idempotencyKey: key }),
 			{
 				name: "TypeError",
-				message: "idempotencyKey must be between 1 and 255 bytes.",
+				message: "idempotencyKey must be a non-empty string.",
 			},
 		);
 	}
-	assert.equal(fetch.mock.callCount(), 2);
+	assert.equal(fetch.mock.callCount(), 3);
 });
 
 test("HTTP failures expose API details or a fallback ZiphError", async (t) => {

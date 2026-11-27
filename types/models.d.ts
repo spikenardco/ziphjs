@@ -162,7 +162,7 @@ export type ZiphOptions = {
 	baseUrl?: string;
 };
 
-/** The key must be 1–255 bytes. Reuse it with the unchanged request when retrying. */
+/** The key must be a nonblank string. Reuse it with the unchanged request when retrying. */
 export type SendMessageInput = SendMessageRequest & { idempotencyKey: string };
 
 export type SendTextInput = (

@@ -83,12 +83,8 @@ export class ZiphClient {
 	 * @returns {Promise<MessageEnvelope>}
 	 */
 	async sendMessage({ idempotencyKey, ...request }) {
-		if (
-			typeof idempotencyKey !== "string" ||
-			!idempotencyKey.trim() ||
-			Buffer.byteLength(idempotencyKey) > 255
-		) {
-			throw new TypeError("idempotencyKey must be between 1 and 255 bytes.");
+		if (typeof idempotencyKey !== "string" || !idempotencyKey.trim()) {
+			throw new TypeError("idempotencyKey must be a non-empty string.");
 		}
 
 		const response = await fetch(this.#messageUrl, {
