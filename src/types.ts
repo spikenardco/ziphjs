@@ -192,7 +192,14 @@ export interface InteractiveReply {
 
 export interface ReceivedMessage {
 	provider_message_id: string;
+	/** Original provider address. An @lid address is not a phone number. */
 	sender: string;
+	/** Unverified display name. Omitted when unavailable. */
+	sender_name?: string;
+	/** International +digits phone number. Omitted when unknown. */
+	sender_phone?: string;
+	/** Opaque @lid address without a device suffix. Omitted when unavailable. */
+	sender_lid?: string;
 	conversation: string;
 	text: string;
 	button_reply?: InteractiveReply;

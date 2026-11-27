@@ -43,6 +43,36 @@ Every send needs an `idempotencyKey` of 1 to 255 bytes. Use a new key for each
 message. If you're unsure whether a request succeeded, retry with the same key
 and unchanged request. The client does not retry automatically.
 
+## Typing incoming webhook payloads
+
+`MessageReceivedEvent` is exported for incoming WhatsApp text and interactive
+replies. In a JavaScript Hono handler, annotate the parsed body with JSDoc:
+
+```js
+/** @type {import("ziphjs").MessageReceivedEvent} */
+const data = await c.req.json();
+
+const reply = data.message.button_reply?.id ?? data.message.list_reply?.id;
+const phone = data.message.sender_phone;
+```
+
+In TypeScript, import the type and supply it to Hono's JSON reader:
+
+```ts
+import type { MessageReceivedEvent } from "ziphjs";
+
+const data = await c.req.json<MessageReceivedEvent>();
+```
+
+`sender_name`, `sender_phone`, and `sender_lid` are omitted when unavailable.
+Check that `sender_phone` exists before using it as a send recipient. The
+`sender` address and `sender_lid` may be opaque WhatsApp identifiers, not phone
+numbers; `sender_name` is an unverified display name.
+
+These annotations provide static typing, not runtime validation. Verify webhook
+signatures against the raw body before parsing, validate the payload, and
+deduplicate event IDs before performing business actions.
+
 ## Errors
 
 Failed HTTP responses throw `ZiphError`, which includes `status`, `code`, `details`,
