@@ -41,10 +41,6 @@ export class ZiphClient {
 	#messageUrl: URL;
 
 	constructor({ apiKey, baseUrl = "https://api.ziph.dev" }: ZiphOptions) {
-		if (typeof apiKey !== "string" || !apiKey.trim()) {
-			throw new TypeError("apiKey is required.");
-		}
-
 		this.#apiKey = apiKey;
 		this.#messageUrl = new URL(`${baseUrl.replace(/\/+$/, "")}/v1/messages`);
 
