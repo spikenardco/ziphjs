@@ -79,6 +79,11 @@ Failed HTTP responses throw `ZiphError`, which includes `status`, `code`, `detai
 and `meta`. Network errors pass through unchanged. Invalid client options or
 idempotency keys throw `TypeError`.
 
+WhatsApp sends can fail with `NUMBER_LIMIT_EXCEEDED` (HTTP 409) when your
+workspace has more channels than its plan allows. This differs from
+`MESSAGE_QUOTA_EXCEEDED` (HTTP 429), which means the remaining WhatsApp message
+or SMS segment allowance is insufficient.
+
 ## Development and releases
 
 Run `npm ci`, `npm run format:check`, `npm run typecheck`, `npm test`, and
