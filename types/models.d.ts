@@ -241,30 +241,32 @@ export type MessageEnvelope = ResponseEnvelope<Message>;
 
 export type ErrorCode =
 	| "AUTH_REQUIRED"
+	| "FORBIDDEN"
+	| "RATE_LIMITED"
 	| "MESSAGE_QUOTA_EXCEEDED"
 	| "PLAN_EXPIRED"
 	| "NUMBER_LIMIT_EXCEEDED"
+	| "BILLING_CONFLICT"
 	| "VALIDATION_ERROR"
 	| "NOT_FOUND"
+	| "METHOD_NOT_ALLOWED"
+	| "CONFLICT"
 	| "CHANNEL_DISCONNECTED"
 	| "PROVIDER_UNAVAILABLE"
 	| "PROVIDER_TIMEOUT"
 	| "PROVIDER_REJECTED"
+	| "SEND_OUTCOME_UNKNOWN"
 	| "IDEMPOTENCY_CONFLICT"
 	| "CHANNEL_TYPE_UNAVAILABLE"
 	| "CHANNEL_TYPE_MISMATCH"
 	| "MESSAGE_TYPE_UNAVAILABLE"
-	| "INTERNAL_SERVER_ERROR";
-
-export interface FieldError {
-	field: string;
-	message: string;
-}
+	| "CONNECTION_METHOD_UNSUPPORTED"
+	| "INTERNAL_SERVER_ERROR"
+	| "SERVICE_UNAVAILABLE";
 
 export interface ApiError {
 	code: ErrorCode;
 	message: string;
-	details: FieldError[];
 }
 
 export interface ErrorEnvelope {

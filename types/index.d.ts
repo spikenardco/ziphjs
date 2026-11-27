@@ -2,7 +2,6 @@
 import type {
 	ApiError,
 	ErrorCode,
-	FieldError,
 	MessageEnvelope,
 	Meta,
 	SendImageInput,
@@ -17,10 +16,9 @@ export type * from "./models.js";
 /** An unsuccessful HTTP response from Ziph. Network errors are not wrapped. */
 export declare class ZiphError extends Error {
 	status: number;
-	code: ErrorCode | null;
-	details: FieldError[];
+	code: ErrorCode;
 	meta: Meta | null;
-	constructor(status: number, error?: ApiError | null, meta?: Meta | null);
+	constructor(status: number, error: ApiError, meta?: Meta | null);
 }
 
 /** Server-side client for sending WhatsApp and SMS messages. */

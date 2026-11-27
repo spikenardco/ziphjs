@@ -1,6 +1,6 @@
 /** @import {
 	ApiError,
-	ErrorEnvelope,
+	ErrorCode,
 	MessageEnvelope,
 	Meta,
 	SendImageInput,
@@ -14,15 +14,14 @@
 export class ZiphError extends Error {
 	/**
 	 * @param {number} status
-	 * @param {ApiError | null} [error]
+	 * @param {ApiError} error
 	 * @param {Meta | null} [meta]
 	 */
-	constructor(status, error = null, meta = null) {
-		super(error?.message ?? `Ziph request failed with HTTP ${status}.`);
+	constructor(status, error, meta = null) {
+		super(error.message);
 		this.name = "ZiphError";
 		this.status = status;
-		this.code = error?.code ?? null;
-		this.details = error?.details ?? [];
+		this.code = error.code;
 		this.meta = meta;
 	}
 }
@@ -100,10 +99,39 @@ export class ZiphClient {
 
 		if (!response.ok) {
 			// Proxies may return HTML or empty bodies instead of an API envelope.
-			const body = /** @type {ErrorEnvelope | null} */ (
-				await response.json().catch(() => null)
+			/** @type {unknown} */
+			const body = await response.json().catch(() => null);
+			if (
+				!body ||
+				typeof body !== "object" ||
+				!("data" in body) ||
+				body.data !== null ||
+				!("error" in body) ||
+				!body.error ||
+				typeof body.error !== "object" ||
+				!("code" in body.error) ||
+				typeof body.error.code !== "string" ||
+				!body.error.code.trim() ||
+				!("message" in body.error) ||
+				typeof body.error.message !== "string" ||
+				!body.error.message.trim() ||
+				!("meta" in body) ||
+				!body.meta ||
+				typeof body.meta !== "object" ||
+				!("timestamp" in body.meta) ||
+				typeof body.meta.timestamp !== "string" ||
+				("request_id" in body.meta && typeof body.meta.request_id !== "string")
+			) {
+				throw new Error(`Invalid Ziph API response (HTTP ${response.status}).`);
+			}
+			throw new ZiphError(
+				response.status,
+				{
+					code: /** @type {ErrorCode} */ (body.error.code),
+					message: body.error.message,
+				},
+				/** @type {Meta} */ (body.meta),
 			);
-			throw new ZiphError(response.status, body?.error, body?.meta);
 		}
 
 		return /** @type {Promise<MessageEnvelope>} */ (response.json());
