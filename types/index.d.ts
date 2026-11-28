@@ -5,7 +5,7 @@ import type {
 	MessageEnvelope,
 	Meta,
 	SendImageInput,
-	SendListInput,
+	SendMenuInput,
 	SendMessageInput,
 	SendTextInput,
 	ZiphOptions,
@@ -29,8 +29,8 @@ export declare class ZiphClient {
 	sendText(input: SendTextInput): Promise<MessageEnvelope>;
 	/** Sends a WhatsApp image. Use image.caption for accompanying text. */
 	sendImage(input: SendImageInput): Promise<MessageEnvelope>;
-	/** Sends a WhatsApp list menu. Both text and list are required. */
-	sendList(input: SendListInput): Promise<MessageEnvelope>;
+	/** Sends a WhatsApp menu. Both text and menu are required. */
+	sendMenu(input: SendMenuInput): Promise<MessageEnvelope>;
 	/**
 	 * Sends once, without automatic retries. Reuse the same key and unchanged
 	 * request if retrying after a network error or an uncertain outcome.

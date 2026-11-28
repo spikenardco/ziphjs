@@ -14,58 +14,59 @@ export type MessageStatus =
 	| "failed"
 	| "unknown";
 
-/** Buttons: 1–3 per message, WhatsApp only. */
-export interface QuickReplyButton {
-	/** Defaults to quick_reply when omitted. */
-	type?: "" | "quick_reply";
-	/** Unique per message, 1–128 bytes. */
+/** Reply action. Required values must be nonblank and contain no control characters. */
+export interface ReplyAction {
+	/** Defaults to reply when omitted. */
+	type?: "reply";
+	/** Caller-supplied, case-sensitive, unique per message, 1–128 UTF-8 bytes. */
 	id: string;
 	/** 1–25 characters. */
-	title: string;
+	label: string;
 	url?: never;
-	copy_code?: never;
+	code?: never;
 	phone_number?: never;
 }
 
-export interface UrlButton {
+export interface UrlAction {
 	type: "url";
-	title: string;
+	/** Nonblank, 1–25 characters, without control characters. */
+	label: string;
 	/** Absolute http(s) URL. */
 	url: string;
 	id?: never;
-	copy_code?: never;
+	code?: never;
 	phone_number?: never;
 }
 
-export interface CopyButton {
+export interface CopyAction {
 	type: "copy";
-	title: string;
-	copy_code: string;
+	/** Nonblank, 1–25 characters, without control characters. */
+	label: string;
+	/** Nonblank text without control characters. */
+	code: string;
 	id?: never;
 	url?: never;
 	phone_number?: never;
 }
 
-export interface CallButton {
+export interface CallAction {
 	type: "call";
-	title: string;
-	/** International format, e.g. +23276123456. */
+	/** Nonblank, 1–25 characters, without control characters. */
+	label: string;
+	/** International +digits format, up to 15 digits, e.g. +23276123456. */
 	phone_number: string;
 	id?: never;
 	url?: never;
-	copy_code?: never;
+	code?: never;
 }
 
-export type MessageButton =
-	| QuickReplyButton
-	| UrlButton
-	| CopyButton
-	| CallButton;
+export type MessageAction = ReplyAction | UrlAction | CopyAction | CallAction;
 
-export type MessageButtons =
-	| [MessageButton]
-	| [MessageButton, MessageButton]
-	| [MessageButton, MessageButton, MessageButton];
+/** 1–3 actions, WhatsApp text or image only. Omit when unused; never null or empty. */
+export type MessageActions =
+	| [MessageAction]
+	| [MessageAction, MessageAction]
+	| [MessageAction, MessageAction, MessageAction];
 
 /** WhatsApp image: JPEG or PNG, up to 5 MiB, publicly accessible without redirects. */
 export interface MessageImage {
@@ -74,28 +75,39 @@ export interface MessageImage {
 	caption?: string;
 }
 
-/** Single-select WhatsApp list menu. Cannot be combined with buttons or an image. */
-export interface ListRow {
-	/** Unique per message, 1–128 bytes. */
+/** Menu values must be nonblank and contain no control characters. */
+export interface MenuOption {
+	/** Caller-supplied, case-sensitive, unique across the menu, 1–128 UTF-8 bytes. */
 	id: string;
 	/** 1–24 characters. */
-	title: string;
+	label: string;
 	/** Up to 72 characters. */
 	description?: string;
 }
 
-export interface ListSection {
-	/** 1–24 characters. */
-	title: string;
-	rows: [ListRow, ...ListRow[]];
+export interface MenuGroup {
+	/** Nonblank, 1–24 characters, without control characters. */
+	label: string;
+	options: [MenuOption, ...MenuOption[]];
 }
 
-export interface MessageListMenu {
-	/** Caption of the menu button, 1–20 characters. */
-	button_text: string;
-	/** 1–10 sections, at most 10 rows in total. */
-	sections: [ListSection, ...ListSection[]];
-}
+/**
+ * Single-select WhatsApp text menu. Exactly one of options or groups; 1–10 options
+ * total across all groups. Flat options have no generated heading. Omit when unused.
+ */
+export type MessageMenu =
+	| {
+			/** Nonblank opener, 1–20 characters, without control characters. */
+			label: string;
+			options: [MenuOption, ...MenuOption[]];
+			groups?: never;
+	  }
+	| {
+			/** Nonblank opener, 1–20 characters, without control characters. */
+			label: string;
+			groups: [MenuGroup, ...MenuGroup[]];
+			options?: never;
+	  };
 
 /** SMS is text only. */
 export interface SmsMessage {
@@ -105,9 +117,9 @@ export interface SmsMessage {
 	channel_id?: never;
 	/** 1–4096 bytes. */
 	text: string;
-	buttons?: never;
+	actions?: never;
 	image?: never;
-	list?: never;
+	menu?: never;
 }
 
 export interface WhatsAppTextMessage {
@@ -116,11 +128,11 @@ export interface WhatsAppTextMessage {
 	to: string;
 	/** Uses the default channel when omitted or null. */
 	channel_id?: string | null;
-	/** 1–4096 bytes. Must include non-whitespace text when adding buttons. */
+	/** 1–4096 UTF-8 bytes. Must include non-whitespace text when adding actions. */
 	text: string;
-	buttons?: MessageButtons;
+	actions?: MessageActions;
 	image?: never;
-	list?: never;
+	menu?: never;
 }
 
 export interface WhatsAppImageMessage {
@@ -131,29 +143,29 @@ export interface WhatsAppImageMessage {
 	channel_id?: string | null;
 	/** Omit, or pass an empty string, and use image.caption instead. */
 	text?: "";
-	buttons?: MessageButtons;
+	actions?: MessageActions;
 	image: MessageImage;
-	list?: never;
+	menu?: never;
 }
 
-export interface WhatsAppListMessage {
+export interface WhatsAppMenuMessage {
 	channel_type: "whatsapp";
 	/** Recipient in international format, e.g. +23276123456. */
 	to: string;
 	/** Uses the default channel when omitted or null. */
 	channel_id?: string | null;
-	/** 1–4096 bytes. */
+	/** Non-whitespace text, 1–4096 UTF-8 bytes. */
 	text: string;
-	buttons?: never;
+	actions?: never;
 	image?: never;
-	list: MessageListMenu;
+	menu: MessageMenu;
 }
 
 export type SendMessageRequest =
 	| SmsMessage
 	| WhatsAppTextMessage
 	| WhatsAppImageMessage
-	| WhatsAppListMessage;
+	| WhatsAppMenuMessage;
 
 export type ZiphOptions = {
 	/** Server-side API key. Never expose it in browser code. */
@@ -165,23 +177,17 @@ export type ZiphOptions = {
 /** The key must be a nonblank string. Reuse it with the unchanged request when retrying. */
 export type SendMessageInput = SendMessageRequest & { idempotencyKey: string };
 
-export type SendTextInput = (
-	| Pick<SmsMessage, "channel_type" | "to" | "text">
-	| Pick<
-			WhatsAppTextMessage,
-			"channel_type" | "to" | "text" | "channel_id" | "buttons"
-	  >
-) & { idempotencyKey: string };
+export type SendTextInput = (SmsMessage | WhatsAppTextMessage) & {
+	idempotencyKey: string;
+};
 
-export type SendImageInput = Pick<
-	WhatsAppImageMessage,
-	"to" | "channel_id" | "image" | "buttons"
-> & { idempotencyKey: string };
+export type SendImageInput = Omit<WhatsAppImageMessage, "channel_type"> & {
+	idempotencyKey: string;
+};
 
-export type SendListInput = Pick<
-	WhatsAppListMessage,
-	"to" | "channel_id" | "text" | "list"
-> & { idempotencyKey: string };
+export type SendMenuInput = Omit<WhatsAppMenuMessage, "channel_type"> & {
+	idempotencyKey: string;
+};
 
 /** Selection returned when a recipient answers a quick-reply or list message. */
 export interface InteractiveReply {

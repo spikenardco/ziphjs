@@ -35,17 +35,106 @@ console.log(message.id, message.status);
 WhatsApp messages use your default channel. To choose another, pass its
 `channel_id`. For SMS, use `channel_type: "sms"`.
 
-`sendMessage` requires `text` for text and list messages. For image messages, omit
+`sendMessage` requires `text` for text and menu messages. For image messages, omit
 `text` or leave it empty and use `image.caption` for a caption.
 
 Use `sendMessage` for any supported message type, or the `sendText`, `sendImage`,
-and `sendList` helpers when you want a type-specific method. Request and response
+and `sendMenu` helpers when you want a type-specific method. Request and response
 types are exported from `ziphjs`.
 
 Every send needs a nonblank string `idempotencyKey`. The client does not impose
 a key-length limit. Use a new key for each message. If you're unsure whether a
 request succeeded, retry with the same key and unchanged request. The client
 does not retry automatically.
+
+## Actions and menus
+
+Add one to three `actions` to WhatsApp text or image messages. Omitted action
+`type` means `reply`; reply IDs are required, case-sensitive, unique within the
+message, and limited to 128 UTF-8 bytes. Explicit empty or null types are invalid.
+
+```js
+await client.sendText({
+	channel_type: "whatsapp",
+	to: "+23276123456",
+	text: "Confirm your order?",
+	actions: [
+		{ id: "confirm", label: "Confirm" },
+		{ type: "url", label: "View order", url: "https://example.com/orders/42" },
+	],
+	idempotencyKey: "order-42-confirm",
+});
+```
+
+Each action accepts only its own fields:
+
+| Action | Fields                                                                           |
+| ------ | -------------------------------------------------------------------------------- |
+| Reply  | `type?: "reply"`, `id`, `label`                                                  |
+| URL    | `type: "url"`, `label`, `url` (absolute HTTP(S))                                 |
+| Copy   | `type: "copy"`, `label`, `code`                                                  |
+| Call   | `type: "call"`, `label`, `phone_number` (international +digits, up to 15 digits) |
+
+Labels allow 1–25 characters. Required values must be nonblank and contain no
+control characters. Non-reply actions require an explicit type and cannot carry
+an `id`, even empty or null. URL, copy, and call actions do not generate click
+webhooks. For image actions, use `sendImage` with `image: { url, caption }` and
+`actions`; do not use top-level text for a caption.
+
+`sendMenu` sets `channel_type: "whatsapp"` for you. Supply `text` and a `menu`
+with a `label` and exactly one of flat `options` or explicitly labeled `groups`:
+
+```js
+await client.sendMenu({
+	to: "+23276123456",
+	text: "How can we help?",
+	menu: {
+		label: "View options",
+		options: [
+			{ id: "track", label: "Track my order" },
+			{
+				id: "support",
+				label: "Contact support",
+				description: "Talk to our team",
+			},
+		],
+	},
+	idempotencyKey: "order-42-menu",
+});
+```
+
+For groups, replace `menu.options` with `menu.groups`:
+
+```js
+await client.sendMenu({
+	to: "+23276123456",
+	text: "Choose a service.",
+	menu: {
+		label: "View services",
+		groups: [
+			{ label: "Orders", options: [{ id: "track", label: "Track my order" }] },
+			{ label: "Help", options: [{ id: "support", label: "Contact support" }] },
+		],
+	},
+	idempotencyKey: "services-menu-42",
+});
+```
+
+Menus allow 1–10 options total across all groups. Each group needs a label and
+at least one option; groups cannot contain groups. IDs must be unique across the
+whole menu and contain 1–128 UTF-8 bytes. Menu opener labels allow 1–20 characters,
+group and option labels 1–24, and descriptions up to 72. Required values cannot be
+blank or contain control characters. Flat options have no generated group heading;
+explicit groups preserve their labels and order.
+
+Menus require non-whitespace WhatsApp text and cannot be combined with actions
+or images. SMS is text only. Omit unused interaction fields; null and empty
+collections are invalid. The API validates values, limits, and unknown fields;
+the SDK forwards request fields without translating or validating their content.
+
+Interactive rendering is experimental and depends on the recipient's WhatsApp
+client. Acceptance does not guarantee rendering. Flat menus still require
+exact-carrier verification on current Android/iOS clients.
 
 ## Typing incoming webhook payloads
 
@@ -120,7 +209,7 @@ rule applies.
 `MessageStatusEvent`, and `Message.events` have been removed. They described
 lookup/list responses, not send responses. Consumers importing these types must
 remove those imports. Send methods still return `MessageEnvelope`, whose `data`
-is a `Message`; WhatsApp list-menu types and `sendList` are unchanged.
+is a `Message`.
 
 ## Development and releases
 

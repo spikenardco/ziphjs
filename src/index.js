@@ -4,7 +4,7 @@
 	MessageEnvelope,
 	Meta,
 	SendImageInput,
-	SendListInput,
+	SendMenuInput,
 	SendMessageInput,
 	SendTextInput,
 	ZiphOptions,
@@ -66,11 +66,11 @@ export class ZiphClient {
 	}
 
 	/**
-	 * Sends a WhatsApp list menu. Both text and list are required.
-	 * @param {SendListInput} input
+	 * Sends a WhatsApp menu. Both text and menu are required.
+	 * @param {SendMenuInput} input
 	 * @returns {Promise<MessageEnvelope>}
 	 */
-	sendList(input) {
+	sendMenu(input) {
 		return this.sendMessage({ ...input, channel_type: "whatsapp" });
 	}
 
