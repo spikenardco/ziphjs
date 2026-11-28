@@ -189,10 +189,12 @@ export type SendMenuInput = Omit<WhatsAppMenuMessage, "channel_type"> & {
 	idempotencyKey: string;
 };
 
-/** Selection returned when a recipient answers a quick-reply or list message. */
-export interface InteractiveReply {
+/** Selection returned when a recipient answers a reply action or menu. */
+export interface Selection {
+	/** Reply actions use buttons, not actions. */
+	source: "buttons" | "menu";
 	id: string;
-	title: string;
+	label: string;
 	quoted_provider_message_id?: string;
 }
 
@@ -207,9 +209,9 @@ export interface ReceivedMessage {
 	/** Opaque @lid address without a device suffix. Omitted when unavailable. */
 	sender_lid?: string;
 	conversation: string;
+	/** Incoming text, or the selected action/menu label. */
 	text: string;
-	button_reply?: InteractiveReply;
-	list_reply?: InteractiveReply;
+	selection?: Selection;
 }
 
 export interface MessageReceivedEvent {

@@ -145,7 +145,7 @@ replies. In a JavaScript Hono handler, annotate the parsed body with JSDoc:
 /** @type {import("ziphjs").MessageReceivedEvent} */
 const data = await c.req.json();
 
-const reply = data.message.button_reply?.id ?? data.message.list_reply?.id;
+const reply = data.message.selection?.id;
 const phone = data.message.sender_phone;
 ```
 
@@ -156,6 +156,13 @@ import type { MessageReceivedEvent } from "ziphjs";
 
 const data = await c.req.json<MessageReceivedEvent>();
 ```
+
+Supported reply action and menu selections use `message.selection` with `source`
+(`"buttons"` or `"menu"`), `id`, and `label`. The source for reply actions is
+`"buttons"`, not `"actions"`. `message.text` also contains the selected label.
+`selection.quoted_provider_message_id` is omitted when unavailable; ordinary text
+messages omit `selection`. URL, copy, and call actions do not generate click
+webhooks. The webhook envelope still uses `version: 1`.
 
 `sender_name`, `sender_phone`, and `sender_lid` are omitted when unavailable.
 Check that `sender_phone` exists before using it as a send recipient. The
