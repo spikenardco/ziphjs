@@ -42,10 +42,11 @@ Use `sendMessage` for any supported message type, or the `sendText`, `sendImage`
 and `sendMenu` helpers when you want a type-specific method. Request and response
 types are exported from `ziphjs`.
 
-Every send needs a nonblank string `idempotencyKey`. The client does not impose
-a key-length limit. Use a new key for each message. If you're unsure whether a
-request succeeded, retry with the same key and unchanged request. The client
-does not retry automatically.
+Every send needs a nonblank string `idempotencyKey`. The API allows 1–255 UTF-8
+bytes; the client checks that the key is nonblank but leaves length validation to
+the API. Use a new key for each new logical message. If you're unsure whether a
+request succeeded, retry with the same key and unchanged request. The client does
+not retry automatically.
 
 ## Actions and menus
 
@@ -209,6 +210,39 @@ Send failures distinguish rejection, unavailability, and uncertain outcomes:
 The client does not retry automatically. After a network or protocol error during
 a send, acceptance may also be uncertain; the same-key, unchanged-request retry
 rule applies.
+
+## Migrating interactions
+
+The action/menu contract replaces the former interaction payloads without aliases
+or automatic conversion. Update producers and webhook consumers together:
+
+| Previous                                                    | Replacement                                                             |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `buttons`, `MessageButton`, `MessageButtons`                | `actions`, `MessageAction`, `MessageActions`                            |
+| `QuickReplyButton`, `UrlButton`, `CopyButton`, `CallButton` | `ReplyAction`, `UrlAction`, `CopyAction`, `CallAction`                  |
+| Action `title`, `type: "quick_reply"`, `copy_code`          | `label`, `type: "reply"` (or omit type), `code`                         |
+| `list`, `MessageListMenu`, `WhatsAppListMessage`            | `menu`, `MessageMenu`, `WhatsAppMenuMessage`                            |
+| `sendList`, `SendListInput`                                 | `sendMenu`, `SendMenuInput`                                             |
+| `button_text`, `sections`, `rows`, `title`                  | `label`, `groups`, `options`, `label`; or flat `options` without groups |
+| `ListSection`, `ListRow`                                    | `MenuGroup`, `MenuOption`                                               |
+| `button_reply` / `list_reply`, `InteractiveReply`           | `selection`, `Selection`, with `source`, `id`, and `label`              |
+
+All previous names above are removed from the SDK's methods and exported types.
+The API rejects old and unknown payload fields. JavaScript callers must update
+their payloads too; the client does not translate them. Webhooks retain version 1,
+so do not rely on a version bump to detect the new reply shape.
+
+The API also uses a new request fingerprint. Keys used under the previous
+fingerprint remain reserved but return `409 IDEMPOTENCY_CONFLICT` rather than
+replaying, even when a request appears unchanged. Reconcile in-flight and unknown
+sends before switching producers, and pause old retry queues. Never generate a
+new key to bypass an uncertain send.
+
+Within the new contract, omitted and explicit `type: "reply"` are equivalent for
+retries. Changing IDs, labels, option order, or flat/grouped presentation changes
+the request. The SDK preserves those values and their order. Coordinate the API,
+gateway, SDK callers, and webhook handlers for the hard cutover; there is no
+compatibility window.
 
 ## Removed read-response types
 
